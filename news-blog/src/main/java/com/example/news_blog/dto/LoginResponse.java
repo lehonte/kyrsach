@@ -1,3 +1,6 @@
 package com.example.news_blog.dto;
 
-public record LoginResponse(String token, String username, String role) {}
+import lombok.Builder;
+
+@Builder
+public record LoginResponse(Long id, String token, String username, String role) {}

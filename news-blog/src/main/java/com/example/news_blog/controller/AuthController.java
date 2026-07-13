@@ -1,11 +1,12 @@
 package com.example.news_blog.controller;
 
-import com.example.news_blog.dto.LoginRequest;
 import com.example.news_blog.dto.LoginResponse;
-import com.example.news_blog.dto.RegisterRequest;
+import com.example.news_blog.dtoRequest.LoginRequest;
+import com.example.news_blog.dtoRequest.RegisterRequest;
 import com.example.news_blog.model.User;
 import com.example.news_blog.security.JwtTokenProvider;
 import com.example.news_blog.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,17 +21,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthenticationManager authManager;
     private final JwtTokenProvider tokenProvider;
     private final UserService userService;
 
-    public AuthController(AuthenticationManager authManager, JwtTokenProvider tokenProvider, UserService userService) {
-        this.authManager = authManager;
-        this.tokenProvider = tokenProvider;
-        this.userService = userService;
-    }
 
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest req) {
@@ -51,4 +48,4 @@ public class AuthController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
-}
+} //перенести в UserController а  uthController фул удалить

@@ -1,77 +1,58 @@
 package com.example.news_blog.controller;
 
-import com.example.news_blog.model.Article;
+import com.example.news_blog.dto.ArticleResponse;
+import com.example.news_blog.dtoRequest.ArticleRequest;
+import com.example.news_blog.enums.Roles;
 import com.example.news_blog.service.ArticleService;
-import com.example.news_blog.dto.ArticleRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/articles")
+@RequiredArgsConstructor
 public class ArticleController {
 
     private final ArticleService articleService;
 
-    public ArticleController(ArticleService articleService) {
-        this.articleService = articleService;
-    }
-
     @GetMapping
-    public List<Article> getAll(@RequestParam(required = false) String category) {
-        if (category != null && !category.isEmpty()) {
-            return articleService.getByCategory(category);
+    public ResponseEntity<List<ArticleResponse>> getAll(@RequestParam(required = false) ArticleRequest request) {
+        if (request.category() != null && !request.category().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(articleService.getByCategory(request));
         }
-        return articleService.getAll();
+        return ResponseEntity.status(HttpStatus.OK).body(articleService.getAll());
     }
 
     @GetMapping("/{id}")
-    public Article getById(@PathVariable Long id) {
-        return articleService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Статья не найдена"));
+    public ResponseEntity<ArticleResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(articleService.findById(id));
     }
 
     @PostMapping
-    public Article create(@RequestBody ArticleRequest request, Authentication auth) {
-        return articleService.create(
-                request.title(),
-                request.content(),
-                auth.getName(),
-                request.category(),
-                request.imageUrl()
-        );
+    public ResponseEntity<ArticleResponse> create(@Valid @RequestBody ArticleRequest request,
+                                                  Authentication auth) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(articleService.create(request, auth.getName()));
     }
+    //return ResponseEntity.ok(articleService.create(request, auth.getName()));
+
 
     @PutMapping("/{id}")
-    public Article update(@PathVariable Long id,
-                          @RequestBody ArticleRequest request,
-                          Authentication auth) {
-        return articleService.update(
-                id,
-                request.title(),
-                request.content(),
-                request.category(),
-                auth.getName(),
-                request.imageUrl(),
-                auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))
-        );
+    public ResponseEntity<ArticleResponse> update(@PathVariable Long id,
+                                                  @Valid @RequestBody ArticleRequest request,
+                                                  Authentication auth) {
+        boolean isAdmin = auth.getAuthorities().contains(Roles.ADMIN);
+        return ResponseEntity.status(HttpStatus.OK).body(articleService.update(id, request, auth.getName(), isAdmin));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, Authentication auth) {
-        articleService.delete(id, auth.getName(),
-                auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")));
+    public ResponseEntity<ArticleResponse> delete(@PathVariable Long id, Authentication auth) {
+        boolean isAdmin = auth.getAuthorities().contains(Roles.ADMIN);
+        return ResponseEntity.status(HttpStatus.OK).body(articleService.delete(id, auth.getName(), isAdmin));
     }
 
-    @PostMapping("/toggle-like/{id}")
-    public Article toggleLike(@PathVariable Long id, Authentication auth) {
-        articleService.toggleLike(id, auth.getName());
-        return articleService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Статья не найдена"));
-    }
-
-    @GetMapping("/liked")
-    public List<Article> liked(Authentication auth) {
-        return articleService.getArticlesLikedByUser(auth.getName());
-    }
 }

@@ -14,33 +14,6 @@ public class CategoryService {
 
     public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
-        initializeDefaultCategories();
-    }
-
-    private void initializeDefaultCategories() {
-        try {
-            long count = categoryRepository.count();
-            logger.info("Сейчас категории: {}", count);
-
-            if (count == 0) {
-                logger.info("Создание дефолт категорий");
-                List<String> defaultCategories = List.of(
-                        "Technology", "Science", "Politics", "Sports",
-                        "Entertainment", "Health", "Business", "Education"
-                );
-
-                for (String name : defaultCategories) {
-                    if (!categoryRepository.existsByName(name)) {
-                        Category category = new Category(name);
-                        categoryRepository.save(category);
-                        logger.info("Созданные категории: {}", name);
-                    }
-                }
-                logger.info("Дефолт категории созданы успешно");
-            }
-        } catch (Exception e) {
-            logger.error("Ошибка создания категорий: {}", e.getMessage(), e);
-        }
     }
 
     public Category create(String name) {
@@ -56,7 +29,7 @@ public class CategoryService {
 
     public List<Category> getAll() {
         List<Category> categories = categoryRepository.findAll();
-        logger.info("Получены {} категории", categories.size());
+        logger.info("Получены {} категории", categoryRepository.count());
         return categories;
     }
 

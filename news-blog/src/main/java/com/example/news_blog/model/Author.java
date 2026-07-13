@@ -6,18 +6,20 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "authors")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Category {
+public class Author {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", unique = true, nullable = false)
-    private String name;
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @OneToMany(mappedBy = "category")
+    @OneToMany(mappedBy = "author")
     private List<Article> articles;
 }
