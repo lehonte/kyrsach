@@ -15,7 +15,7 @@ public class LikeController {
 
     private final LikeService likeService;
 
-    @PostMapping("/toggle-like")
+    @PostMapping("/toggle-like/{id}")
     public ResponseEntity<LikeResponse> toggleLike(@PathVariable Long id,
                                                    Authentication auth) {
         return ResponseEntity.status(HttpStatus.OK).body(likeService.toggleLike(id, auth.getName()));

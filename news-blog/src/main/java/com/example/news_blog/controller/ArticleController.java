@@ -2,7 +2,6 @@ package com.example.news_blog.controller;
 
 import com.example.news_blog.dto.ArticleResponse;
 import com.example.news_blog.dtoRequest.ArticleRequest;
-import com.example.news_blog.enums.Roles;
 import com.example.news_blog.service.ArticleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +20,11 @@ public class ArticleController {
     private final ArticleService articleService;
 
     @GetMapping
-    public ResponseEntity<List<ArticleResponse>> getAll(@RequestParam(required = false) ArticleRequest request) {
-        if (request.category() != null && !request.category().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK).body(articleService.getByCategory(request));
+    public ResponseEntity<List<ArticleResponse>> getAll(@RequestParam(required = false) String category) {
+        if (category != null && !category.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK ).body(articleService.getByCategory(category));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(articleService.getAll());
+        return ResponseEntity.status(HttpStatus.OK ).body(articleService.getAll());
     }
 
     @GetMapping("/{id}")
@@ -45,14 +44,17 @@ public class ArticleController {
     public ResponseEntity<ArticleResponse> update(@PathVariable Long id,
                                                   @Valid @RequestBody ArticleRequest request,
                                                   Authentication auth) {
-        boolean isAdmin = auth.getAuthorities().contains(Roles.ADMIN);
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         return ResponseEntity.status(HttpStatus.OK).body(articleService.update(id, request, auth.getName(), isAdmin));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ArticleResponse> delete(@PathVariable Long id, Authentication auth) {
-        boolean isAdmin = auth.getAuthorities().contains(Roles.ADMIN);
-        return ResponseEntity.status(HttpStatus.OK).body(articleService.delete(id, auth.getName(), isAdmin));
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        articleService.delete(id, auth.getName(), isAdmin);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -1,54 +1,64 @@
 package com.example.news_blog.service;
 
+import com.example.news_blog.dto.LoginResponse;
+import com.example.news_blog.dto.UserResponse;
+import com.example.news_blog.dtoRequest.LoginRequest;
+import com.example.news_blog.dtoRequest.RegisterRequest;
+import com.example.news_blog.enums.Roles;
 import com.example.news_blog.model.User;
 import com.example.news_blog.repository.UserRepository;
+import com.example.news_blog.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final JwtTokenProvider tokenProvider;
+    private final AuthenticationManager authManager;
 
-    public User register(String username, String email, String rawPassword) {
-        if (username == null || username.trim().isEmpty()) {
-            throw new RuntimeException("Имя пользователя не может быть пустым");
+
+    public UserResponse register(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.username())) {
+            throw new RuntimeException("Имя пользователя '" + request.username() + "' уже занято");
         }
-        if (email == null || !email.contains("@")) {
-            throw new RuntimeException("Некорректный email");
-        }
-        if (rawPassword == null || rawPassword.length() < 5) {
-            throw new RuntimeException("Пароль должен быть не менее 5 символов");
-        }
-        if (userRepository.existsByUsername(username)) {
-            throw new RuntimeException("Имя пользователя '" + username + "' уже занято");
-        }
-        if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email '" + email + "' уже используется");
+        if (userRepository.existsByEmail(request.email())) {
+            throw new RuntimeException("Email '" + request.email() + "' уже используется");
         }
 
-        User user = new User(username, email, passwordEncoder.encode(rawPassword));
-        user.setRole("ROLE_USER");
-        return userRepository.save(user);
-    }
-
-    public void makeAdmin(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-        user.setRole("ROLE_ADMIN");
+        User user = new User();
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRole(Roles.USER);
         userRepository.save(user);
+        return UserResponse.builder().username(request.username()).email(request.email()).role(Roles.USER).build();
     }
-    public List<User> getAll() {
-        return userRepository.findAll();
+
+    public List<UserResponse> getAll() {
+        return userRepository.findAll().stream()
+                .map(user -> new UserResponse(user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getRole())).toList();
     }
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
+
+    public LoginResponse login(LoginRequest request) {
+
+        Authentication auth = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+        User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        String token = tokenProvider.generateToken(user.getUsername(), user.getRole());
+        return LoginResponse.builder().id(user.getId()).username(user.getUsername()).token(token).email(user.getEmail()).build();
     }
 }

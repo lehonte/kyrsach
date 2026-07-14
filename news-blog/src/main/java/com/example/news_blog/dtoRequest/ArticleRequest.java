@@ -12,6 +12,9 @@ public record ArticleRequest(
     @Size(min = 10, message = "Статья должна содержать минимум 10 символов")
     String content,
 
+    @NotBlank(message = "Автор должен быть указан")
+    String user,
+
     @NotBlank(message = "Категория должна быть указана")
     String category,
 

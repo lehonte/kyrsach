@@ -4,6 +4,8 @@ import com.example.news_blog.enums.Roles;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -27,7 +29,7 @@ public class User {
     @Column(name = "role",nullable = false)
     private Roles role = Roles.USER;
 
-    @OneToOne(mappedBy = "user")
-    private Author author;
+    @OneToMany(mappedBy = "user")
+    private List<Article> articles;
 
 }

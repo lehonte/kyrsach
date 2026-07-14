@@ -12,14 +12,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ArticleService {
     private final ArticleRepository articleRepository;
-    private final AuthorRepository authorRepository;
+
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     public ArticleResponse create(ArticleRequest request, String auth) {
         Article article = new Article();
         article.setTitle(request.title());
-        article.setAuthor(authorRepository
-                .findByUser_Username(auth).orElseThrow(() -> new RuntimeException("Неверный автор")));
+        article.setUser(userRepository
+                .findByUsername(auth).orElseThrow(() -> new RuntimeException("Неверный автор")));
         article.setContent(request.content());
         article.setCategory(categoryRepository
                 .findCategoryByName(request.category()).orElseThrow(() -> new RuntimeException("Неверная категория")));
@@ -31,7 +32,7 @@ public class ArticleService {
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .imageUrl(saved.getImageUrl())
-                .author(saved.getAuthor().getUser().getUsername())
+                .author(saved.getUser().getUsername())
                 .category(saved.getCategory().getName())
                 .build();
     }
@@ -42,18 +43,18 @@ public class ArticleService {
                         article.getTitle(),
                         article.getContent(),
                         article.getImageUrl(),
-                        article.getAuthor().getUser().getUsername(),
+                        article.getUser().getUsername(),
                         article.getCategory().getName()))
                 .toList();
     }
 
-    public List<ArticleResponse> getByCategory(ArticleRequest request) {
-        return articleRepository.findByCategory_Name(request.category()).stream()
+    public List<ArticleResponse> getByCategory(String category) {
+        return articleRepository.findByCategory_Name(category).stream()
                 .map(article -> new ArticleResponse(article.getId(),
                         article.getTitle(),
                         article.getContent(),
                         article.getImageUrl(),
-                        article.getAuthor().getUser().getUsername(),
+                        article.getUser().getUsername(),
                         article.getCategory().getName()))
                 .toList();
     }
@@ -66,29 +67,28 @@ public class ArticleService {
                 .title(article.getTitle())
                 .content(article.getContent())
                 .imageUrl(article.getImageUrl())
-                .author(article.getAuthor().getUser().getUsername())
+                .author(article.getUser().getUsername())
                 .category(article.getCategory().getName())
                 .build();
     }
 
-    public ArticleResponse delete(Long id, String auth, boolean isAdmin) {
+    public void delete(Long id, String auth, boolean isAdmin) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Статья не найдена"));
 
-        boolean isAuthor = article.getAuthor().getUser().getUsername().equals(auth);
+        boolean isAuthor = article.getUser().getUsername().equals(auth);
         if (!isAuthor && !isAdmin) {
             throw new RuntimeException("Вы можете удалять только свои статьи");
         }
 
         articleRepository.delete(article);
-        return ArticleResponse.builder().build();
     }
 
     public ArticleResponse update(Long id, ArticleRequest request, String auth, boolean isAdmin) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Статья не найдена"));
 
-        boolean isAuthor = article.getAuthor().getUser().getUsername().equals(auth);
+        boolean isAuthor = article.getUser().getUsername().equals(auth);
         if (!isAuthor && !isAdmin) {
             throw new RuntimeException("Вы можете редактировать только свои статьи");
         }
@@ -107,7 +107,7 @@ public class ArticleService {
                 .title(saved.getTitle())
                 .content(saved.getContent())
                 .imageUrl(saved.getImageUrl())
-                .author(saved.getAuthor().getUser().getUsername())
+                .author(saved.getUser().getUsername())
                 .category(saved.getCategory().getName())
                 .build();
     }

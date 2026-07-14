@@ -26,7 +26,6 @@ public class LikeService {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Статья не найдена"));
 
-
         Optional<Like> existingLike = likeRepository.findByUserAndArticle(user, article);
 
         if (existingLike.isPresent()) {

@@ -1,8 +1,10 @@
 package com.example.news_blog.controller;
 
-import com.example.news_blog.model.Category;
+import com.example.news_blog.dto.CategoryResponse;
 import com.example.news_blog.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +17,7 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<Category> getAll() {
-        return categoryService.getAll();
+    public ResponseEntity<List<CategoryResponse>> getAll() {
+        return ResponseEntity.status(HttpStatus.OK).body(categoryService.getAll());
     }
 }

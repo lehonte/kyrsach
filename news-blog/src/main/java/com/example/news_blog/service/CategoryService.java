@@ -1,39 +1,33 @@
 package com.example.news_blog.service;
 
+import com.example.news_blog.dto.CategoryResponse;
+import com.example.news_blog.dtoRequest.CategoryRequest;
 import com.example.news_blog.model.Category;
 import com.example.news_blog.repository.CategoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
     private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
     private final CategoryRepository categoryRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
-
-    public Category create(String name) {
-        logger.info("Созданные категории: {}", name);
-
-        if (categoryRepository.existsByName(name)) {
-            throw new RuntimeException("Категория '" + name + "' уже существует");
-        }
-
-        Category category = new Category(name);
-        return categoryRepository.save(category);
-    }
-
-    public List<Category> getAll() {
-        List<Category> categories = categoryRepository.findAll();
+    public List<CategoryResponse> getAll() {
         logger.info("Получены {} категории", categoryRepository.count());
-        return categories;
+        return categoryRepository.findAll().stream()
+                .map(category -> new CategoryResponse(
+                        category.getId(),
+                        category.getName())).toList();
     }
 
-    public Category createCategory(String name) {
-        return create(name);
+    public CategoryResponse createCategory(CategoryRequest request) {
+        Category category = new Category();
+        category.setName(request.name());
+        categoryRepository.save(category);
+        return CategoryResponse.builder().id(category.getId()).name(category.getName()).build();
     }
 }

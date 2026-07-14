@@ -22,8 +22,8 @@ public class Article {
     private String content;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "author_id", nullable = false)
-    private Author author;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "category_id", nullable = false)
