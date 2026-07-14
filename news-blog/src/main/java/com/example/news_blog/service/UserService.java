@@ -41,7 +41,11 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(Roles.USER);
         userRepository.save(user);
-        return UserResponse.builder().username(request.username()).email(request.email()).role(Roles.USER).build();
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(Roles.USER).build();
     }
 
     public List<UserResponse> getAll() {
@@ -59,6 +63,12 @@ public class UserService {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
         String token = tokenProvider.generateToken(user.getUsername(), user.getRole());
-        return LoginResponse.builder().id(user.getId()).username(user.getUsername()).token(token).email(user.getEmail()).build();
+        return LoginResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .token(token)
+                .email(user.getEmail())
+                .role(Roles.USER)
+                .build();
     }
 }

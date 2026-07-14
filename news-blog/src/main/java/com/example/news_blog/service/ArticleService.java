@@ -41,10 +41,10 @@ public class ArticleService {
         return articleRepository.findAll().stream()
                 .map(article -> new ArticleResponse(article.getId(),
                         article.getTitle(),
-                        article.getContent(),
-                        article.getImageUrl(),
                         article.getUser().getUsername(),
-                        article.getCategory().getName()))
+                        article.getContent(),
+                        article.getCategory().getName(),
+                        article.getImageUrl()))
                 .toList();
     }
 
@@ -52,10 +52,10 @@ public class ArticleService {
         return articleRepository.findByCategory_Name(category).stream()
                 .map(article -> new ArticleResponse(article.getId(),
                         article.getTitle(),
-                        article.getContent(),
-                        article.getImageUrl(),
                         article.getUser().getUsername(),
-                        article.getCategory().getName()))
+                        article.getContent(),
+                        article.getCategory().getName(),
+                        article.getImageUrl()))
                 .toList();
     }
 
