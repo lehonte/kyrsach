@@ -37,8 +37,6 @@ public class ArticleController {
                                                   Authentication auth) {
         return ResponseEntity.status(HttpStatus.CREATED).body(articleService.create(request, auth.getName()));
     }
-    //return ResponseEntity.ok(articleService.create(request, auth.getName()));
-
 
     @PutMapping("/{id}")
     public ResponseEntity<ArticleResponse> update(@PathVariable Long id,

@@ -5,4 +5,3 @@ VALUES (
            '${admin_password_hash}',
            'ADMIN'
        ) ON CONFLICT (email) DO NOTHING;
-ф
